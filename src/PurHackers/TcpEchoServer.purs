@@ -15,7 +15,7 @@ import Erl.Data.Binary (Binary)
 import Erl.Data.Binary.IOData (fromBinary)
 import Erl.Data.List (List, fromFoldable)
 import Erl.Kernel.Inet (ActiveError(..), ConnectedSocket, ListenSocket, PassiveSocket, Port(..))
-import Erl.Kernel.Tcp (TcpMessage, TcpSocket, listenPassive)
+import Erl.Kernel.Tcp (TcpSocket, listenPassive)
 import Erl.Kernel.Tcp as Tcp
 import Erl.Process.Raw (spawn)
 import Erl.Types (Timeout(..))
@@ -39,7 +39,7 @@ type State =
   , connection :: TcpSocket PassiveSocket ListenSocket
   }
 
-data Messages = TcpMessage TcpMessage | Accept
+data Messages = Accept
 
 derive instance eqMessages :: Eq Messages
 derive instance genericMessages :: Generic Messages _
@@ -82,11 +82,6 @@ handleInfo Accept state = do
     Left err -> do
       _ <- liftEffect $ logInfo "Error accepting connection" { message: "Error accepting connection", data: err }
       pure $ GenServer.return state
-
-handleInfo _ state = do
-  _ <- logInfo "Received unknown message" { message: "Received unknown message" } # liftEffect
-  _ <- Tcp.close state.connection # liftEffect
-  pure $ GenServer.return state
 
 receiveSocket :: TcpSocket PassiveSocket ConnectedSocket -> Effect (Unit)
 receiveSocket socket = do
