@@ -1,0 +1,5 @@
+%{
+  "gproc": {:hex, :gproc, "0.9.0", "853ccb7805e9ada25d227a157ba966f7b34508f386a3e7e21992b1b484230699", [:rebar3], [], "hexpm", "587e8af698ccd3504cf4ba8d90f893ede2b0f58cabb8a916e2bf9321de3cf10b"},
+  "jsx": {:hex, :jsx, "3.1.0", "d12516baa0bb23a59bb35dccaf02a1bd08243fcbb9efe24f2d9d056ccff71268", [:rebar3], [], "hexpm", "0c5cc8fdc11b53cc25cf65ac6705ad39e54ecc56d1c22e4adb8f5a53fb9427f3"},
+  "purerlex": {:hex, :purerlex, "0.4.2", "96e8a6988f5b4e91e713cc5c04f5f768f46fd39539f7dc61c8182f439669c31d", [:mix], [], "hexpm", "303d02b8f29199612cacdecbd6aca7c27b9423f94d6982c6bac56bc326e24103"},
+}
