@@ -3,38 +3,28 @@ module PurHackers.TcpEchoServer where
 import Prelude
 
 import Data.Either (Either(..))
-import Data.Foldable (fold, traverse_)
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep as IOData
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
 import Data.Show.Generic (genericShow)
-import Data.Time (Millisecond)
 import Data.Time.Duration (Milliseconds(..))
-import Debug as Process.Raw
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Erl.Atom (atom)
 import Erl.Data.Binary (Binary)
-import Erl.Data.Binary.IOData (IOData, fromBinary)
-import Erl.Data.Binary.IOData as Binary
-import Erl.Data.Binary.IOData as IOData
-import Erl.Data.List (List, foldM, fromFoldable, (:))
-import Erl.Data.List.NonEmpty (foldr)
-import Erl.Kernel.Inet (ActiveError(..), ActiveSocket, ConnectedSocket, ListenSocket, PassiveSocket, Port(..))
-import Erl.Kernel.Inet as Process
-import Erl.Kernel.Tcp (TcpMessage(..), TcpSocket, listen, listenPassive)
+import Erl.Data.Binary.IOData (fromBinary)
+import Erl.Data.List (List, fromFoldable)
+import Erl.Kernel.Inet (ActiveError(..), ConnectedSocket, ListenSocket, PassiveSocket, Port(..))
+import Erl.Kernel.Tcp (TcpMessage, TcpSocket, listenPassive)
 import Erl.Kernel.Tcp as Tcp
-import Erl.Process (receive, self)
-import Erl.Process.Raw (send, spawn)
+import Erl.Process.Raw (spawn)
 import Erl.Types (Timeout(..))
 import Foreign as Foreign
-import Pinto (RegistryName(..), RegistryReference(..), StartLinkResult)
-import Pinto.GenServer (InfoFn, InitResult(..), ServerPid, ServerType, CastFn)
+import Pinto (RegistryName(..), StartLinkResult)
+import Pinto.GenServer (InfoFn, InitResult(..), ServerPid, ServerType)
 import Pinto.GenServer as GenServer
 import Pinto.Timer as Timer
 import PurHackers.Logger (logInfo)
-import PurHackers.Logger as PurHackers.Logger
 
 newtype TcpPort = TcpPort Int
 
@@ -100,21 +90,16 @@ handleInfo _ state = do
 
 receiveSocket :: TcpSocket PassiveSocket ConnectedSocket -> Effect (Unit)
 receiveSocket socket = do
-  maybeListBs <- doRecv socket $ fromFoldable []
-  case maybeListBs of
-    Just listBs -> do
-      _ <- logInfo "Received message" { message: "Received message", data: listBs } # liftEffect
-      let ioData = map fromBinary listBs
-      binary <- mempty $ foldr (\acc b -> IOData.append_ acc b) IOData.empty ioData
-      _ <- liftEffect $ Tcp.send socket binary
-      pure unit
-    Nothing -> pure unit
+  _maybeListBs <- doRecv socket $ fromFoldable []
+  pure unit
 
 doRecv :: TcpSocket PassiveSocket ConnectedSocket -> List Binary -> Effect (Maybe (List Binary))
 doRecv socket bs = do
   received <- Tcp.recv socket 0 (Timeout $ Milliseconds 600000.0)
   case received of
-    Right receivedBinary -> doRecv socket $ bs <> fromFoldable [ receivedBinary ]
+    Right receivedBinary -> do
+      _ <- liftEffect $ Tcp.send socket $ fromBinary receivedBinary
+      doRecv socket $ bs <> fromFoldable [ receivedBinary ]
     Left ActiveClosed -> do
       _ <- logInfo "Connection closed" { message: "Connection closed" } # liftEffect
       pure $ Just bs
