@@ -22,3 +22,7 @@ type State =
 
 type Message =
   { method :: String, number :: Number }
+
+type MessageResponse =
+  { method :: String, prime :: Boolean }
+
