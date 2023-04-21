@@ -3,10 +3,8 @@ module PurHackers.TcpEchoServer where
 import Prelude
 
 import Data.Either (Either(..))
-import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (wrap)
-import Data.Show.Generic (genericShow)
 import Data.Time.Duration (Milliseconds(..))
 import Effect (Effect)
 import Effect.Class (liftEffect)
@@ -14,7 +12,7 @@ import Erl.Atom (atom)
 import Erl.Data.Binary (Binary)
 import Erl.Data.Binary.IOData (fromBinary)
 import Erl.Data.List (List, fromFoldable)
-import Erl.Kernel.Inet (ActiveError(..), ConnectedSocket, ListenSocket, PassiveSocket, Port(..))
+import Erl.Kernel.Inet (ActiveError(..), ConnectedSocket, PassiveSocket, Port(..))
 import Erl.Kernel.Tcp (TcpSocket, listenPassive)
 import Erl.Kernel.Tcp as Tcp
 import Erl.Process.Raw (spawn)
@@ -25,27 +23,8 @@ import Pinto.GenServer (InfoFn, InitResult(..), ServerPid, ServerType)
 import Pinto.GenServer as GenServer
 import Pinto.Timer as Timer
 import PurHackers.Logger (logInfo)
-
-newtype TcpPort = TcpPort Int
-
-derive instance eqTcpPort :: Eq TcpPort
-derive instance genericTcpPort :: Generic TcpPort _
-
-instance showTcpPort :: Show TcpPort where
-  show = genericShow
-
-type State =
-  { port :: Port
-  , connection :: TcpSocket PassiveSocket ListenSocket
-  }
-
-data Messages = Accept
-
-derive instance eqMessages :: Eq Messages
-derive instance genericMessages :: Generic Messages _
-
-instance showMessages :: Show Messages where
-  show = genericShow
+import PurHackers.TcpEchoServer.Types (Messages(..), State)
+import PurHackers.Types (TcpPort(..))
 
 serverName :: RegistryName (ServerType Unit Unit Messages State)
 serverName = Local $ atom "echo_server"

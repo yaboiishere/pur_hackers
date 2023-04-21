@@ -12,8 +12,9 @@ import Erl.Data.List as ErlList
 import Pinto.Supervisor (ChildShutdownTimeoutStrategy(..), ChildType(..), RestartStrategy(..), SupervisorPid, spec)
 import Pinto.Supervisor as Supervisor
 import Pinto.Types (RegistryName(..), StartLinkResult)
-import PurHackers.TcpEchoServer (TcpPort(..))
+import PurHackers.PrimeTime as PrimeTime
 import PurHackers.TcpEchoServer as TcpEchoServer
+import PurHackers.Types (TcpPort(..))
 
 startLink :: Effect (StartLinkResult SupervisorPid)
 startLink = Supervisor.startLink (Just $ Local $ atom supervisorName) $ pure supervisorSpec
@@ -24,6 +25,13 @@ startLink = Supervisor.startLink (Just $ Local $ atom supervisorName) $ pure sup
     [ spec
         { id: "tcp_echo_server"
         , start: TcpEchoServer.startLink (TcpPort 3000)
+        , restartStrategy: RestartTransient
+        , shutdownStrategy: ShutdownTimeout $ Milliseconds 5000.0
+        , childType: Worker
+        }
+    , spec
+        { id: "prime_time"
+        , start: PrimeTime.startLink (TcpPort 3001)
         , restartStrategy: RestartTransient
         , shutdownStrategy: ShutdownTimeout $ Milliseconds 5000.0
         , childType: Worker
